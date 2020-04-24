@@ -118,3 +118,6 @@ fi
 
 # For python executables
 export PATH=$PATH:$HOME/.local/bin
+
+# For fzf
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash

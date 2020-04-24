@@ -6,6 +6,8 @@ Bring my development environment everywhere. vim, tmux, bash, zsh, VSCode, docke
 
 ## Getting Started
 
+### Run Once
+
 > Currently only support Debian (Ubuntu, Raspbbian)
 
 * Install some must have application
@@ -15,7 +17,34 @@ Bring my development environment everywhere. vim, tmux, bash, zsh, VSCode, docke
 ./BasicSetup.sh
 ```
 
-### dotfiles
+#### VSCode
+
+After install VSCode (make sure `code` is in the PATH)
+
+```sh
+./InstallVscodeExtensions.sh
+```
+
+#### Python
+
+* Install pip
+
+```sh
+./PythonSetup.sh
+```
+
+#### My Personal Settings
+
+* Setup git name and email
+* Store git credential
+
+```sh
+./PersonalConfig.sh
+```
+
+### Run When Update
+
+#### dotfiles
 
 * zshrc
 * vimrc
@@ -25,35 +54,15 @@ Bring my development environment everywhere. vim, tmux, bash, zsh, VSCode, docke
 ./UpdateDotFiles.sh
 ```
 
-### VSCode
-
-After install VSCode (make sure `code` is in the PATH)
-
-```sh
-./InstallVscodeExtensions.sh
-```
-
-### Python
-
-* Install pip
-
-```sh
-./PythonSetup.sh
-```
-
-### My Personal Settings
-
-* Setup git name and email
-* Store git credential
-
-```sh
-./PersonalConfig.sh
-```
-
 ## TODO
 
+* [ ] Auto yes during interactive script
+  * oh-my-zsh
+  * fzf
 * [ ] Update vimrc
+* [ ] Tmux, Zsh, Vim theme
 * [ ] Make script fit other Linux/Unix OS (e.g. https://github.com/iofu728/zsh.sh/blob/master/zsh.sh)
+* [ ] Make script has configure argument (e.g. ~/.fzf/install)
 * [ ] NeoVim
 * [ ] VSCode perferences
 

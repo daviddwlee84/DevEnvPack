@@ -12,9 +12,9 @@ sudo apt install -y build-essential \
                     git \
                     zsh \
                     vim \
+                    tmux \
                     neovim \
-                    curl \
-                    fzf
+                    curl
 echo "...done"
 
 echo "Installing Oh-my-zsh"
@@ -29,3 +29,20 @@ echo "...done"
 
 echo "Installing zsh plugin"
 git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+echo "...done"
+
+# Installation of fzf might fail if not match the Linux distribution
+# https://github.com/junegunn/fzf#using-linux-package-managers
+echo "Install fzf"
+sudo apt install fzf
+# https://askubuntu.com/questions/29370/how-to-check-if-a-command-succeeded
+if [ $? -ne 0 ]; then
+    echo "Install fzf manually"
+    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+    ~/.fzf/install --key-bindings --completion --no-update-rc
+fi
+echo "...done"
+
+echo "Setup dotfiles"
+./UpdateDotFiles.sh
+echo "...done"
