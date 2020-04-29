@@ -28,6 +28,7 @@ After install VSCode (make sure `code` is in the PATH)
 #### Python
 
 * Install pip
+* Install common packages
 
 ```sh
 ./PythonSetup.sh

@@ -1,0 +1,10 @@
+pylint
+autopep8
+pytest
+coverage
+numpy
+pandas
+matplotlib
+jupyterlab
+ipdb
+llist
