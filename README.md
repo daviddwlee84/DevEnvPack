@@ -95,3 +95,12 @@ After install VSCode (make sure `code` is in the PATH)
 
 * [webpro/awesome-dotfiles: A curated list of dotfiles resources.](https://github.com/webpro/awesome-dotfiles)
 * [TheLocehiliosan/yadm: Yet Another Dotfiles Manager](https://github.com/TheLocehiliosan/yadm)
+
+---
+
+## Vim
+
+Manage by vim-plug
+
+* [junegunn/vim-plug: Minimalist Vim Plugin Manager](https://github.com/junegunn/vim-plug)
+  * [Automatic Installation - tips · junegunn/vim-plug Wiki](https://github.com/junegunn/vim-plug/wiki/tips#automatic-installation)
