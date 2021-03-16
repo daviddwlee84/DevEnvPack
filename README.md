@@ -65,6 +65,47 @@ After install VSCode (make sure `code` is in the PATH)
 >   * [**Enable Hyper-V on Windows 10 | Microsoft Docs**](https://docs.microsoft.com/en-us/virtualization/hyper-v-on-windows/quick-start/enable-hyper-v?redirectedfrom=MSDN)
 >   * [FIX: Hyper-V and containers features are not enabled error in Windows](https://windowsreport.com/hyper-v-and-containers-not-enabled/)
 
+#### OpenSSH
+
+Powershell
+
+```powershell
+cd Windows
+.\InstallOpenSSH.ps1
+```
+
+1. Install latest powershell
+   * [Releases · PowerShell/PowerShell](https://github.com/PowerShell/PowerShell/releases/)
+   * [在 Windows 上安裝 PowerShell - PowerShell | Microsoft Docs](https://docs.microsoft.com/zh-tw/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-7.1#download-the-installer-package)
+   * Current version is powershell 7. And you can execute it with `c:/progra~1/powershell/7/pwsh.exe`
+2. Set the `Subsystem` line into `Subsystem powershell c:/progra~1/powershell/7/pwsh.exe -sshs -NoLogo`
+   * Config file: `$env:ProgramData\ssh`
+
+```powershell
+# Make sure restart ssh daemon after changing settings
+Restart-Service sshd
+```
+
+Font
+
+* [ryanoasis/nerd-fonts: Iconic font aggregator, collection, & patcher. 3,600+ icons, 50+ patched fonts: Hack, Source Code Pro, more. Glyph collections: Font Awesome, Material Design Icons, Octicons, & more](https://github.com/ryanoasis/nerd-fonts)
+* [microsoft/cascadia-code: This is a fun, new monospaced font that includes programming ligatures and is designed to enhance the modern look and feel of the Windows Terminal.](https://github.com/microsoft/cascadia-code)
+* [powerline/fonts: Patched fonts for Powerline users.](https://github.com/powerline/fonts)
+
+```powershell
+# Windows Terminal Setting
+$settings = (Get-Item "C:\users\$env:UserName\AppData\Local\Packages\Microsoft.WindowsTerminal_*\LocalState\settings.json")
+$settings.DirectoryName
+```
+
+> The login password is your Windows account password (if you have login your Windows)
+
+#### Set Powershell setting (TODO)
+
+* [How to create permanent PowerShell Aliases - Stack Overflow](https://stackoverflow.com/questions/24914589/how-to-create-permanent-powershell-aliases)
+
+`$profile`: `~\Documents\PowerShell\Microsoft.PowerShell_profile.ps1`
+
 ### Run When Update
 
 #### dotfiles
@@ -83,11 +124,16 @@ After install VSCode (make sure `code` is in the PATH)
   * oh-my-zsh
   * fzf
 * [ ] Update vimrc
+* [ ] Clean up unused vim plugin
 * [ ] Tmux, Zsh, Vim theme
 * [ ] Make script fit other Linux/Unix OS (e.g. https://github.com/iofu728/zsh.sh/blob/master/zsh.sh)
 * [ ] Make script has configure argument (e.g. ~/.fzf/install)
 * [ ] NeoVim
-* [ ] VSCode perferences
+* [ ] VSCode preferences
+
+Windows
+
+* [ ] Powershell version setting
 
 ## Resources
 
@@ -104,3 +150,9 @@ Manage by vim-plug
 
 * [junegunn/vim-plug: Minimalist Vim Plugin Manager](https://github.com/junegunn/vim-plug)
   * [Automatic Installation - tips · junegunn/vim-plug Wiki](https://github.com/junegunn/vim-plug/wiki/tips#automatic-installation)
+
+Plugin
+
+* [rlue/vim-barbaric: Automatic input method switching for vim](https://github.com/rlue/vim-barbaric)
+* [lyokha/vim-xkbswitch: vim plugin for automatic keyboard layout switching in insert mode](https://github.com/lyokha/vim-xkbswitch)
+  * [DeXP/xkb-switch-win: xkb-switch-lib API port to Win32/Win64](https://github.com/DeXP/xkb-switch-win)
