@@ -1,0 +1,210 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+default:
+    @just --list
+
+# ----------------------------
+# helpers / defaults
+# ----------------------------
+
+key_dir := env_var_or_default("SSH_KEY_DIR", "~/.ssh")
+default_key_name := env_var_or_default("SSH_KEY_NAME", "id_ed25519_github")
+default_key_path := key_dir + "/" + default_key_name
+default_comment := env_var_or_default("SSH_KEY_COMMENT", "github-auth")
+default_host := env_var_or_default("SSH_GITHUB_HOST", "github.com")
+
+# ----------------------------
+# basic info
+# ----------------------------
+
+list:
+    @just --list
+
+ssh-which:
+    @command -v ssh
+    @command -v ssh-keygen
+    @command -v ssh-add
+    @command -v ssh-agent
+
+ssh-perms:
+    mkdir -p {{ key_dir }}
+    chmod 700 {{ key_dir }}
+    find {{ key_dir }} -type f -name "*.pub" -exec chmod 644 {} \;
+    find {{ key_dir }} -type f ! -name "*.pub" -exec chmod 600 {} \;
+    @echo "Permissions fixed under {{ key_dir }}"
+
+ssh-list-files:
+    @ls -la {{ key_dir }}
+
+ssh-agent-status:
+    @ssh-add -l || true
+
+# ----------------------------
+# key generation
+# ----------------------------
+
+# Generate a GitHub-oriented ed25519 key.
+# Example:
+#   just ssh-gen-github trading-vm-david github-trading-vm-david
+ssh-gen-github name comment=default_comment:
+    mkdir -p {{ key_dir }}
+    chmod 700 {{ key_dir }}
+    key_path="{{ key_dir }}/{{ name }}"; \
+    if [ -e "$key_path" ] || [ -e "$key_path.pub" ]; then \
+      echo "Key already exists: $key_path"; \
+      exit 1; \
+    fi; \
+    ssh-keygen -t ed25519 -a 100 -C "{{ comment }}" -f "$key_path"
+
+# More generic version.
+# Example:
+#   just ssh-gen mykey "my-comment"
+ssh-gen name comment=default_comment:
+    mkdir -p {{ key_dir }}
+    chmod 700 {{ key_dir }}
+    key_path="{{ key_dir }}/{{ name }}"; \
+    if [ -e "$key_path" ] || [ -e "$key_path.pub" ]; then \
+      echo "Key already exists: $key_path"; \
+      exit 1; \
+    fi; \
+    ssh-keygen -t ed25519 -a 100 -C "{{ comment }}" -f "$key_path"
+
+# ----------------------------
+# agent helpers
+# ----------------------------
+
+# Add a key to ssh-agent.
+# Example:
+#   just ssh-add-key id_ed25519_github
+ssh-add-key name=default_key_name:
+    key_path="{{ key_dir }}/{{ name }}"; \
+    test -f "$key_path"; \
+    eval "$(ssh-agent -s)" >/dev/null 2>&1 || true; \
+    if [[ "$OSTYPE" == darwin* ]]; then \
+      ssh-add --apple-use-keychain "$key_path"; \
+    else \
+      ssh-add "$key_path"; \
+    fi
+
+# ----------------------------
+# inspection
+# ----------------------------
+
+# Print public key only.
+ssh-pub name=default_key_name:
+    @cat "{{ key_dir }}/{{ name }}.pub"
+
+# Print fingerprint of public key.
+ssh-fingerprint name=default_key_name:
+    @ssh-keygen -lf "{{ key_dir }}/{{ name }}.pub"
+
+# Show key comment from public key.
+ssh-comment name=default_key_name:
+    @awk '{print $3}' "{{ key_dir }}/{{ name }}.pub"
+
+# ----------------------------
+# GitHub / SSH config
+# ----------------------------
+
+# Print a safe ~/.ssh/config snippet for GitHub.
+# Example:
+#   just ssh-config-snippet id_ed25519_github github.com
+ssh-config-snippet name=default_key_name host=default_host:
+    @printf '%s\n' \
+      "Host {{ host }}" \
+      "  HostName github.com" \
+      "  User git" \
+      "  IdentityFile {{ key_dir }}/{{ name }}" \
+      "  IdentitiesOnly yes" \
+      "  AddKeysToAgent yes"
+    @if [[ "$OSTYPE" == darwin* ]]; then \
+      printf '%s\n' "  UseKeychain yes"; \
+    fi
+
+# Append the snippet if the Host block does not already exist.
+# Safer than blind overwrite, but still backs up first.
+# Example:
+#   just ssh-config-append id_ed25519_github github.com
+ssh-config-append name=default_key_name host=default_host:
+    mkdir -p {{ key_dir }}
+    touch {{ key_dir }}/config
+    chmod 600 {{ key_dir }}/config
+    if grep -qE '^Host[[:space:]]+{{ host }}$' {{ key_dir }}/config; then \
+      echo "Host block '{{ host }}' already exists in {{ key_dir }}/config"; \
+      exit 1; \
+    fi
+    cp {{ key_dir }}/config {{ key_dir }}/config.bak.$(date +%Y%m%d%H%M%S)
+    { \
+    echo ""; \
+    echo "Host {{ host }}"; \
+    echo "  HostName github.com"; \
+    echo "  User git"; \
+    echo "  IdentityFile {{ key_dir }}/{{ name }}"; \
+    echo "  IdentitiesOnly yes"; \
+    echo "  AddKeysToAgent yes"; \
+    if [[ "$OSTYPE" == darwin* ]]; then \
+    echo "  UseKeychain yes"; \
+    fi; \
+    } >> {{ key_dir }}/config
+    @echo "Appended Host {{ host }} to {{ key_dir }}/config"
+
+# Test GitHub SSH auth.
+ssh-test-github host=default_host:
+    ssh -T git@{{ host }}
+
+# Show what SSH would actually use for this host.
+ssh-debug-github host=default_host:
+    ssh -G git@{{ host }} | sed -n '1,120p'
+
+# ----------------------------
+# combined workflows
+# ----------------------------
+
+# One-shot setup:
+# 1) generate key
+# 2) add to agent
+# 3) print public key
+# 4) print config snippet
+#
+# Example:
+#   just ssh-setup-github trading-vm-david github-trading-vm-david
+ssh-setup-github name comment=default_comment host=default_host:
+    just ssh-gen-github {{ name }} {{ comment }}
+    just ssh-add-key {{ name }}
+    @echo ""
+    @echo "=== Public key: paste this into GitHub ==="
+    just ssh-pub {{ name }}
+    @echo ""
+    @echo "=== Suggested ~/.ssh/config snippet ==="
+    just ssh-config-snippet {{ name }} {{ host }}
+    @echo ""
+    @echo "Then run: just ssh-test-github {{ host }}"
+
+# Quick summary for a given key.
+ssh-summary name=default_key_name host=default_host:
+    @echo "Key path: {{ key_dir }}/{{ name }}"
+    @echo ""
+    @echo "[fingerprint]"
+    just ssh-fingerprint {{ name }}
+    @echo ""
+    @echo "[public key]"
+    just ssh-pub {{ name }}
+    @echo ""
+    @echo "[config snippet]"
+    just ssh-config-snippet {{ name }} {{ host }}
+
+# ----------------------------
+# repo remote helpers
+# ----------------------------
+
+# Show current git remotes.
+git-remote-show:
+    git remote -v
+
+# Convert origin to GitHub SSH remote.
+# Example:
+#   just git-remote-set-origin daviddwlee84 myrepo
+git-remote-set-origin owner repo:
+    git remote set-url origin git@github.com:{{ owner }}/{{ repo }}.git
+    git remote -v
+
