@@ -194,6 +194,41 @@ ssh-summary name=default_key_name host=default_host:
     just ssh-config-snippet {{ name }} {{ host }}
 
 # ----------------------------
+# GitHub CLI key management
+# ----------------------------
+
+# List SSH keys on your GitHub account.
+gh-ssh-list:
+    gh ssh-key list
+
+# Add a public key to your GitHub account.
+# Example:
+#   just gh-ssh-add id_ed25519_github "My Laptop"
+gh-ssh-add name=default_key_name title="" type="authentication":
+    gh ssh-key add "{{ key_dir }}/{{ name }}.pub" \
+      {{ if title != "" { '--title "' + title + '"' } else { "" } }} \
+      --type {{ type }}
+
+# Delete an SSH key from your GitHub account by key ID.
+gh-ssh-delete id:
+    gh ssh-key delete {{ id }}
+
+# List GPG keys on your GitHub account.
+gh-gpg-list:
+    gh gpg-key list
+
+# Add a GPG key to your GitHub account.
+# Example:
+#   just gh-gpg-add /path/to/public.gpg "My GPG Key"
+gh-gpg-add key_file title="":
+    gh gpg-key add "{{ key_file }}" \
+      {{ if title != "" { '--title "' + title + '"' } else { "" } }}
+
+# Delete a GPG key from your GitHub account by key ID.
+gh-gpg-delete id:
+    gh gpg-key delete {{ id }}
+
+# ----------------------------
 # repo remote helpers
 # ----------------------------
 
